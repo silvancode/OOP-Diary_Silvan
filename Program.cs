@@ -12,11 +12,13 @@ namespace DairyConsole {
     [Serializable]
     public class Tagebucheintrag {
         public DateTime Datum { get; set; }
+        public string[] Tag { get; set; }
         public string Text { get; set; }
         public Tagebucheintrag() {
         }
-        public Tagebucheintrag(DateTime datum, string text) {
+        public Tagebucheintrag(DateTime datum, string[] tag, string text) {
             Datum = datum;
+            Tag = tag;
             Text = text;
         }
     }
@@ -32,7 +34,12 @@ namespace DairyConsole {
             }
 
             while (true) {
-                Console.WriteLine("Datum (JJJJ-MM-TT):");
+                foreach (var eintrag in einträge) {
+
+                    Console.WriteLine(eintrag.Datum.ToString("d") + " [" + string.Join("|", eintrag.Tag) + "] " + eintrag.Text.Substring(0, Math.Min(eintrag.Text.Length, 20)) + "...");
+                }
+
+                Console.Write("Datum: ");
                 DateTime datum = DateTime.Parse(Console.ReadLine());
 
                 bool vorhanden = false;
@@ -42,7 +49,8 @@ namespace DairyConsole {
                     if (eintrag.Datum == datum) {
 
                         // Ausgabe des Eintrags aus der Liste
-                        Console.WriteLine("Datum: " + eintrag.Datum);
+                        Console.WriteLine("Datum: " + eintrag.Datum.ToString("d"));
+                        Console.WriteLine("Tags: [" + string.Join("|", eintrag.Tag) + "]");
                         Console.WriteLine("Text: " + eintrag.Text);
                         Console.ReadKey();
                         vorhanden = true;
@@ -51,7 +59,7 @@ namespace DairyConsole {
                 }
 
                 if (vorhanden) {
-                    Console.WriteLine("Weiteren Eintrag lesen? (j/n)");
+                    Console.Write("Weiteren Eintrag lesen? (j/n): ");
                 } else {
                     Console.WriteLine("Eintrag nicht gefunden?");
                     break;
@@ -75,14 +83,28 @@ namespace DairyConsole {
                     einträge = (List<Tagebucheintrag>)serializer.Deserialize(reader);
                 }
 
-                Console.WriteLine("Datum (JJJJ-MM-TT):");
+                Console.Write("Datum: ");
                 DateTime datum = DateTime.Parse(Console.ReadLine());
+
+                List<string> tags = new List<string>();
+
+                for (int i = 0; i < 3; i++) {
+                    Console.Write("Tag: ");
+                    string antwortTag = Console.ReadLine();
+                    if (antwortTag == "") {
+                        break;
+                    } else {
+                        tags.Add(antwortTag);
+                    }
+                }
+
+                String[] tag = tags.ToArray();
 
                 Console.WriteLine("Neuer Eintrag:");
                 string text = Console.ReadLine();
 
                 // Erstellen eines neuen Eintrags
-                Tagebucheintrag eintrag = new Tagebucheintrag(datum, text);
+                Tagebucheintrag eintrag = new Tagebucheintrag(datum, tag, text);
 
                 // Eintrag zur Liste hinzufügen
                 einträge.Add(eintrag);
@@ -95,10 +117,10 @@ namespace DairyConsole {
 
                 Console.WriteLine("Eintrag gespeichert!");
 
-                Console.WriteLine("Weiteren Eintrag hinzufügen? (j/n)");
-                string antwort = Console.ReadLine();
+                Console.Write("Weiteren Eintrag hinzufügen? (j/n): ");
+                string weiterEintrag = Console.ReadLine();
 
-                if (antwort != "j") {
+                if (weiterEintrag != "j") {
                     break;
                 }
             }
@@ -127,7 +149,7 @@ namespace DairyConsole {
             }
 
             if (!File.Exists("tagebuch.txt")) {
-                Console.WriteLine("XML-Datei nicht vorhanden, soll eine neue erstellt werden? (j/n)");
+                Console.Write("XML-Datei nicht vorhanden, soll eine neue erstellt werden? (j/n): ");
                 string antwort = Console.ReadLine();
 
                 if (antwort == "j") {
